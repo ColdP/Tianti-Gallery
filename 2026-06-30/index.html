@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Gallery | 2026.06.30</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
+    
+    <style>
+        /* 定义浅色模式（默认）变量 */
+        :root {
+            --bg-color: #F4F4F6;
+            --text-main: #000000;
+            --text-sub: #666666;
+            --text-card-handle: #333333;
+            --card-bg: #FFFFFF;
+            --black-card-bg: #000000;
+            --scrollbar-thumb: rgba(0, 0, 0, 0.2);
+            --scrollbar-thumb-hover: rgba(0, 0, 0, 0.4);
+            --lightbox-bg: rgba(255, 255, 255, 0.05);
+            --lightbox-close-bg: rgba(255, 255, 255, 0.75);
+            --lightbox-close-icon: #000000;
+            --lightbox-capsule-bg: rgba(0, 0, 0, 0.75);
+        }
+
+        /* 侦测系统偏好，应用深色模式变量 (前提是用户没有手动强制浅色) */
+        @media (prefers-color-scheme: dark) {
+            :root:not(.light) {
+                --bg-color: #000000;
+                --text-main: #FFFFFF;
+                --text-sub: #A0A0A0;
+                --text-card-handle: #D0D0D0;
+                --card-bg: #1C1C1E;
+                --black-card-bg: #1C1C1E;
+                --scrollbar-thumb: rgba(255, 255, 255, 0.2);
+                --scrollbar-thumb-hover: rgba(255, 255, 255, 0.4);
+                --lightbox-bg: rgba(0, 0, 0, 0.5);
+                --lightbox-close-bg: rgba(28, 28, 30, 0.75);
+                --lightbox-close-icon: #FFFFFF;
+                --lightbox-capsule-bg: rgba(28, 28, 30, 0.75);
+            }
+        }
+
+        /* 手动触发的深色模式 */
+        :root.dark {
+            --bg-color: #000000;
+            --text-main: #FFFFFF;
+            --text-sub: #A0A0A0;
+            --text-card-handle: #D0D0D0;
+            --card-bg: #1C1C1E;
+            --black-card-bg: #1C1C1E;
+            --scrollbar-thumb: rgba(255, 255, 255, 0.2);
+            --scrollbar-thumb-hover: rgba(255, 255, 255, 0.4);
+            --lightbox-bg: rgba(0, 0, 0, 0.5);
+            --lightbox-close-bg: rgba(28, 28, 30, 0.75);
+            --lightbox-close-icon: #FFFFFF;
+            --lightbox-capsule-bg: rgba(28, 28, 30, 0.75);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            /* 禁止长按图片选中等默认行为以提高沉浸感 */
+            -webkit-touch-callout: none;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            /* 首选 Google Sans，次选 Inter */
+            font-family: 'Google Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            color: var(--text-main);
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        /* --- 隐藏默认滚动条，使用自制极简滚动条 --- */
+        ::-webkit-scrollbar {
+            width: 6px; /* 垂直滚动条的宽度 */
+            height: 6px; /* 水平滚动条的高度 */
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: transparent; /* 轨道设为透明，不占用视觉空间 */
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: var(--scrollbar-thumb); /* 根据深浅模式自适应滑块颜色 */
+            border-radius: 10px; /* 圆角设计 */
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--scrollbar-thumb-hover); /* 鼠标悬停时颜色加深，提供交互反馈 */
+        }
+
+        /* 针对 Firefox 的精简滚动条支持及页面防抖动 */
+        html {
+            scrollbar-width: thin;
+            scrollbar-color: var(--scrollbar-thumb) transparent;
+        }
+        /* ------------------------------------------ */
+
+        /* 限制最大宽度，桌面端也能良好模拟手机竖屏效果 */
+        .app-container {
+            max-width: 480px;
+            margin: 0 auto;
+            background-color: var(--bg-color);
+            min-height: 100vh;
+            padding-bottom: 40px;
+            position: relative;
+            transition: background-color 0.3s ease;
+        }
+
+        /* 顶部导航头（固定定位，自适应胶囊宽度，默认透明） */
+        header {
+            position: fixed;
+            top: 16px; /* 顶部稍微多留一点悬浮空间 */
+            left: 50%;
+            transform: translateX(-50%);
+            display: inline-flex; /* 关键：让容器宽度根据内部文字自适应 */
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 14px 40px; /* 调大了上下和左右的安全距离/内边距 */
+            z-index: 100;
+            border-radius: 999px; /* 超大圆角形成完美的胶囊形状 */
+            background-color: rgba(255, 255, 255, 0);
+            /* 去除 transition，因为我们要通过 JS 进行跟随手势的逐帧渲染 */
+        }
+
+        .header-titles {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .header-titles h1 {
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: -0.2px;
+            white-space: nowrap; /* 强制标题不换行以支撑胶囊宽度 */
+        }
+
+        .header-titles p {
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--text-sub);
+            margin-top: 1px;
+            white-space: nowrap;
+        }
+
+        .header-titles p a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        /* 顶部白底信息卡片 */
+        .top-card {
+            background-color: var(--card-bg);
+            /* 增加 top margin 给变大的 fixed header 留出空间 */
+            margin: 94px 20px 20px 20px;
+            border-radius: 16px; 
+            padding: 10px 16px 10px 10px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.04);
+            transition: background-color 0.3s ease;
+        }
+
+        .top-card-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 16px;
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+
+        .top-card-info {
+            margin-left: 12px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-evenly; 
+            height: 44px; 
+        }
+
+        .top-card-info .x-text-logo {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-main);
+            line-height: 1;
+            align-self: flex-start;
+        }
+
+        .top-card-info .handles {
+            font-size: 11px;
+            color: var(--text-card-handle);
+            font-weight: 600;
+            letter-spacing: -0.1px;
+            white-space: nowrap;
+        }
+
+        .top-card-info .handles a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        /* 主题切换按钮 */
+        .theme-toggle {
+            margin-left: auto; /* 利用 flex 推到最右侧 */
+            background: transparent;
+            border: none;
+            color: var(--text-sub);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+
+        .theme-toggle:hover {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+        }
+
+        .theme-toggle .material-symbols-rounded {
+            font-size: 20px;
+        }
+
+        /* 图片瀑布流布局 - 采用双列Flex方式，以保证精准排布图片顺序 */
+        .masonry-grid {
+            display: flex;
+            padding: 0 20px;
+            gap: 14px;
+            align-items: flex-start;
+        }
+
+        .grid-col {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .grid-item {
+            width: 100%;
+            height: auto;
+            border-radius: 24px;
+            display: block;
+            object-fit: cover;
+            /* 柔和的阴影增强质感 */
+            box-shadow: 0 2px 12px rgba(0,0,0,0.03);
+            /* 添加淡入动画让加载更平滑 */
+            animation: fadeIn 0.6s ease-out backwards;
+        }
+
+        /* 黑色 X 信息卡片穿插 */
+        .black-card {
+            background-color: var(--black-card-bg);
+            border-radius: 24px;
+            padding: 20px 16px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            box-sizing: border-box;
+            width: 100%;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+            animation: fadeIn 0.6s ease-out backwards;
+            transition: background-color 0.3s ease;
+        }
+
+        .black-card-icon {
+            width: 32px;
+            height: 32px;
+            flex-shrink: 0;
+        }
+
+        .black-card-handles {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .black-card-handles a {
+            color: #FFFFFF;
+            font-size: 11px;
+            font-weight: 500;
+            line-height: 1.3;
+            letter-spacing: 0.2px;
+            text-decoration: none;
+        }
+
+        /* 设置子元素的动画延迟 */
+        .grid-col > *:nth-child(1) { animation-delay: 0.05s; }
+        .grid-col > *:nth-child(2) { animation-delay: 0.1s; }
+        .grid-col > *:nth-child(3) { animation-delay: 0.15s; }
+        .grid-col > *:nth-child(4) { animation-delay: 0.2s; }
+        .grid-col > *:nth-child(5) { animation-delay: 0.25s; }
+        .grid-col > *:nth-child(6) { animation-delay: 0.3s; }
+        .grid-col > *:nth-child(7) { animation-delay: 0.35s; }
+        .grid-col > *:nth-child(8) { animation-delay: 0.4s; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Lightbox (大图查看器) 样式 */
+        .lightbox {
+            position: fixed;
+            top: 0; 
+            left: 0; 
+            right: 0; 
+            bottom: 0;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            /* 改用 visibility 管理整体层级，以便拆分动画 */
+            visibility: hidden;
+            transition: visibility 0.4s;
+            overflow: hidden;
+        }
+
+        .lightbox.active {
+            visibility: visible;
+            transition: visibility 0s;
+        }
+
+        .lightbox-bg {
+            position: absolute;
+            top: 0; right: 0; bottom: 0; left: 0;
+            background-color: var(--lightbox-bg); /* 自适应深浅背景 */
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            z-index: 1;
+            /* 背景优先出现 */
+            opacity: 0;
+            transition: opacity 0.2s ease, background-color 0.3s ease;
+        }
+
+        .lightbox.active .lightbox-bg {
+            opacity: 1;
+        }
+
+        .lightbox-close {
+            position: absolute;
+            top: 24px;
+            left: 20px;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: var(--lightbox-close-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 3;
+            opacity: 0;
+            transform: scale(0.9);
+            transition: opacity 0.25s ease, transform 0.25s ease, background 0.3s ease;
+        }
+
+        .lightbox.active .lightbox-close {
+            opacity: 1;
+            transform: scale(1);
+            /* 延迟 0.15s 出现，确保模糊背景先行 */
+            transition: opacity 0.3s ease 0.15s, transform 0.3s ease 0.15s;
+        }
+
+        .lightbox-close svg {
+            width: 20px;
+            height: 20px;
+            stroke: var(--lightbox-close-icon);
+        }
+
+        .lightbox-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 2;
+            width: 100%;
+            max-width: 480px; /* 内容区限制最大宽度以保持手机端比例 */
+            max-height: 85vh;
+            padding: 0 20px;
+            /* 初始状态设定，为延迟入场动画做准备 */
+            opacity: 0;
+            transform: translateY(15px) scale(0.98);
+            transition: opacity 0.25s ease, transform 0.25s ease;
+        }
+
+        .lightbox.active .lightbox-content {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            /* 延迟 0.15s 出现图片及胶囊信息，确保模糊背景先行 */
+            transition: opacity 0.35s ease 0.15s, transform 0.35s ease 0.15s;
+        }
+
+        .lightbox-img {
+            max-width: 100%;
+            max-height: calc(85vh - 120px); 
+            border-radius: 24px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            object-fit: contain;
+        }
+
+        /* 多人合照时垂直堆叠胶囊的容器 */
+        .lightbox-capsules-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 20px;
+            align-items: center;
+        }
+
+        /* 独立名片胶囊 */
+        .lightbox-capsule {
+            background: var(--lightbox-capsule-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 999px; /* 使用胶囊形状 */
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            text-decoration: none;
+            transition: background 0.3s ease;
+        }
+
+        .lightbox-capsule img {
+            width: 20px;
+            height: auto;
+            /* 保持X原本的样子 */
+        }
+
+        .lightbox-capsule span {
+            color: #FFFFFF;
+            font-size: 14px;
+            font-weight: 500;
+            letter-spacing: 0.2px;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        
+        <header id="main-header">
+            <div class="header-titles">
+                <h1>Gallery | 2026.06.30</h1>
+                <p>Shot by <a href="https://x.com/btm_m_" target="_blank">@btm_m_</a></p>
+            </div>
+        </header>
+
+        <div class="top-card">
+            <img src="https://today-wallpaper.sgp1.cdn.digitaloceanspaces.com/2026-06-30/ic_x_withradiusbg.png" alt="X Icon Background" class="top-card-icon">
+            <div class="top-card-info">
+                <span class="x-text-logo">X</span>
+                <span class="handles">
+                    <a href="https://x.com/zhuzi1688" target="_blank">@zhuzi1688</a> / 
+                    <a href="https://x.com/OOookzw2018" target="_blank">@OOookzw2018</a> / 
+                    <a href="https://x.com/btm_m_" target="_blank">@btm_m_</a>
+                </span>
+            </div>
+            <button id="theme-toggle" class="theme-toggle" aria-label="Toggle Theme">
+                <span class="material-symbols-rounded">dark_mode</span>
+            </button>
+        </div>
+
+        <div class="masonry-grid">
+            <div class="grid-col left-col">
+                <img src="https://today-wallpaper.sgp1.cdn.digitaloceanspaces.com/2026-06-30/1.jpg" class="grid-item" data-uids="zhuzi1688" loading="lazy">
+                <img src="https://today-wallpaper.sgp1.cdn.digitaloceanspaces.com/2026-06-30/4.jpg" class="grid-item" data-uids="OOookzw2018" loading="lazy">
+                <img src="https://today-wallpaper.sgp1.cdn.digitaloceanspaces.com/2026-06-30/6.jpg" class="grid-item" data-uids="zhuzi1688,OOookzw2018" loading="lazy">
+                <img src="https://today-wallpaper.sgp1.cdn.digitaloceanspaces.com/2026-06-30/7.jpg" class="grid-item" data-uids="zhuzi1688,btm_m_" loading="lazy">
+                <img src="https://today-wallpaper.sgp1.cdn.digitaloceanspaces.com/2026-06-30/9.jpg" class="grid-item" data-uids="zhuzi1688" loading="lazy">
+                <img src="https://today-wallpaper.sgp1.cdn.digitaloceanspaces.com/2026-06-30/11.jpg" class="grid-item" data-uids="zhuzi1688" loading="lazy">
+                <img src="https://today-wallpaper.sgp1.cdn.digitaloceanspaces.com/2026-06-30/13.jpg" class="grid-item" data-uids="zhuzi1688,OOookzw2018" loading="lazy">
+                <img src="https://today-wallpaper.sgp1.cdn.digitaloceanspaces.com/2026-06-30/16.jpg" class="grid-item" data-uids="zhuzi1688,OOookzw2018" loading="lazy">
+                <img src="https://today-wallpaper.sgp1.cdn.digitaloceanspaces.com/2026-06-30/17.jpg" class="grid-item" data-uids="OOookzw2018,btm_m_" loading="lazy">
+            </div>
+
+            <div class="grid-col right-col">
+                <img src="https://today-wallpaper.sgp1.cdn.digitaloceanspaces.com/2026-06-30/2.jpg" class="grid-item" data-uids="zhuzi1688,OOookzw2018" loading="lazy">
+                <img src="https://today-wallpaper.sgp1.cdn.digitaloceanspaces.com/2026-06-30/3.jpg" class="grid-item" data-uids="btm_m_" loading="lazy">
+                <img src="https://today-wallpaper.sgp1.cdn.digitaloceanspaces.com/2026-06-30/5.jpg" class="grid-item" data-uids="zhuzi1688,OOookzw2018" loading="lazy">
+                <img src="https://today-wallpaper.sgp1.cdn.digitaloceanspaces.com/2026-06-30/8.jpg" class="grid-item" data-uids="zhuzi1688,OOookzw2018" loading="lazy">
+                <img src="https://today-wallpaper.sgp1.cdn.digitaloceanspaces.com/2026-06-30/10.jpg" class="grid-item" data-uids="btm_m_" loading="lazy">
+                
+                <div class="black-card">
+                    <img src="https://today-wallpaper.sgp1.cdn.digitaloceanspaces.com/2026-06-30/X.svg" alt="X Logo Original" class="black-card-icon">
+                    <div class="black-card-handles">
+                        <a href="https://x.com/zhuzi1688" target="_blank">@zhuzi1688</a>
+                        <a href="https://x.com/OOookzw2018" target="_blank">@OOookzw2018</a>
+                        <a href="https://x.com/btm_m_" target="_blank">@btm_m_</a>
+                    </div>
+                </div>
+
+                <img src="https://today-wallpaper.sgp1.cdn.digitaloceanspaces.com/2026-06-30/12.jpg" class="grid-item" data-uids="OOookzw2018" loading="lazy">
+                <img src="https://today-wallpaper.sgp1.cdn.digitaloceanspaces.com/2026-06-30/14.jpg" class="grid-item" data-uids="zhuzi1688,OOookzw2018" loading="lazy">
+            </div>
+        </div>
+        
+        <div id="lightbox" class="lightbox">
+            <div class="lightbox-bg" id="lightbox-bg"></div>
+            <button class="lightbox-close" id="lightbox-close">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+            <div class="lightbox-content">
+                <img id="lightbox-img" class="lightbox-img" src="" alt="Full Screen">
+                <div class="lightbox-capsules-container" id="lightbox-capsules-container">
+                    </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const darkModeQuery = window.matchMedia('(prefers-color-scheme: dark)');
+        const htmlElement = document.documentElement;
+        const themeToggleBtn = document.getElementById('theme-toggle');
+        const themeIcon = themeToggleBtn.querySelector('.material-symbols-rounded');
+
+        // 检测当前实际生效的主题状态
+        const isCurrentThemeDark = () => {
+            return htmlElement.classList.contains('dark') || 
+                   (darkModeQuery.matches && !htmlElement.classList.contains('light'));
+        };
+
+        // 更新按钮图标
+        const updateThemeIcon = (isDark) => {
+            // 如果是深色模式，显示太阳供用户切换浅色；如果是浅色模式，显示月亮供用户切换深色
+            themeIcon.textContent = isDark ? 'light_mode' : 'dark_mode';
+        };
+
+        // 应用主题
+        const applyTheme = (isDark) => {
+            if (isDark) {
+                htmlElement.classList.add('dark');
+                htmlElement.classList.remove('light');
+            } else {
+                htmlElement.classList.add('light');
+                htmlElement.classList.remove('dark');
+            }
+            updateThemeIcon(isDark);
+            updateHeaderStyle();
+        };
+
+        // 按钮点击事件处理
+        themeToggleBtn.addEventListener('click', () => {
+            applyTheme(!isCurrentThemeDark());
+        });
+
+        // 监听系统主题变化
+        darkModeQuery.addEventListener('change', (e) => {
+            // 只有在用户没有手动覆盖的情况下，才跟随系统强制变化
+            if (!htmlElement.classList.contains('dark') && !htmlElement.classList.contains('light')) {
+                updateThemeIcon(e.matches);
+                updateHeaderStyle();
+            }
+        });
+        
+        // 初始化图标
+        updateThemeIcon(isCurrentThemeDark());
+
+        // 渲染顶部胶囊样式的函数 (跟随滑动及深浅模式)
+        const updateHeaderStyle = () => {
+            const header = document.getElementById('main-header');
+            const fadeDistance = 100; 
+            let scrollY = window.scrollY;
+            if (scrollY < 0) scrollY = 0; 
+            
+            const progress = Math.min(scrollY / fadeDistance, 1);
+            
+            // 实时感知深浅模式，切换不同的背景 RGB 颜色
+            const isDark = isCurrentThemeDark();
+            const bgRgb = isDark ? '28, 28, 30' : '255, 255, 255'; 
+            const maxBgOpacity = 0.65; 
+            const maxBlur = 5;      
+            const maxShadowOpacity = 0.08;
+            
+            header.style.backgroundColor = `rgba(${bgRgb}, ${progress * maxBgOpacity})`;
+            header.style.backdropFilter = `blur(${progress * maxBlur}px)`;
+            header.style.webkitBackdropFilter = `blur(${progress * maxBlur}px)`;
+            header.style.boxShadow = `0 4px 20px rgba(0, 0, 0, ${progress * maxShadowOpacity})`;
+        };
+
+        // 监听滚动
+        window.addEventListener('scroll', updateHeaderStyle);
+        // 初始化运行一次
+        updateHeaderStyle();
+
+        // Lightbox 查看大图逻辑
+        const lightbox = document.getElementById('lightbox');
+        const lightboxBg = document.getElementById('lightbox-bg');
+        const lightboxImg = document.getElementById('lightbox-img');
+        const lightboxCapsulesContainer = document.getElementById('lightbox-capsules-container');
+        const lightboxClose = document.getElementById('lightbox-close');
+
+        document.querySelectorAll('.grid-item').forEach(img => {
+            // 给可点击的图片添加手势样式
+            img.style.cursor = 'pointer';
+            
+            img.addEventListener('click', () => {
+                const src = img.getAttribute('src');
+                const uids = img.getAttribute('data-uids').split(',');
+                
+                // 设置图片
+                lightboxImg.setAttribute('src', src);
+                
+                // 根据 UID 生成独立堆叠的名片胶囊
+                let capsulesHtml = '';
+                uids.forEach(uid => {
+                    capsulesHtml += `
+                        <a href="https://x.com/${uid}" target="_blank" class="lightbox-capsule">
+                            <img src="https://today-wallpaper.sgp1.cdn.digitaloceanspaces.com/2026-06-30/X.svg" alt="X Logo">
+                            <span>@${uid}</span>
+                        </a>
+                    `;
+                });
+                lightboxCapsulesContainer.innerHTML = capsulesHtml;
+                
+                // 动态计算当前系统的滚动条宽度，并填充为 padding，完美无痕防止抖动
+                const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+                document.body.style.paddingRight = `${scrollbarWidth}px`;
+
+                // 显示 Lightbox 并禁用页面主体滚动
+                lightbox.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            });
+        });
+
+        // 关闭逻辑
+        const closeLightbox = () => {
+            lightbox.classList.remove('active');
+            
+            // 延迟清除防抖 padding，让背景平滑过渡，防止大图关闭瞬间出现闪烁
+            setTimeout(() => {
+                document.body.style.overflow = '';
+                document.body.style.paddingRight = '';
+            }, 400); // 400ms 与 CSS transition 时间保持一致
+        };
+
+        lightboxClose.addEventListener('click', closeLightbox);
+        
+        // 点击背景也可以关闭
+        lightbox.addEventListener('click', (e) => {
+            if (e.target === lightbox || e.target === lightboxBg) {
+                closeLightbox();
+            }
+        });
+    </script>
+</body>
+</html>
